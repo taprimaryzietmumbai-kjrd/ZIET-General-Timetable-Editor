@@ -1,1 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>ZIET General Timetable Editor</title>
+
+<style>
+:root{
+  --primary:#17365d;
+  --secondary:#2f75b5;
+  --light:#eef4fa;
+  --border:#cbd5e1;
+  --text:#1f2937;
+  --danger:#b91c1c;
+  --success:#166534;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f5f7fa;
+  color:var(--text);
+}
+
+.container{
+  max-width:1400px;
+  margin:auto;
+  padding:20px;
+}
+
+.header{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+
+.header h1{
+  margin:0;
+  color:var(--primary);
+  font-size:28px;
+}
+
+.header p{
+  margin:6px 0 0;
+  color:#64748b;
+}
+
+.section{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.section-title{
+  font-size:20px;
+  font-weight:700;
+  color:var(--primary);
+  margin-bottom:15px;
+  border-bottom:2px solid var(--secondary);
+  padding-bottom:8px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.field.full{
+  grid-column:1/-1;
+}
+
+label{
+  font-weight:600;
+  font-size:13px;
+  color:#475569;
+}
+
+input,
+textarea,
+select{
+  width:100%;
+  padding:9px 10px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  font:inherit;
+  background:white;
+}
+
+textarea{
+  min-height:70px;
+  resize:vertical;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+  outline:none;
+  border-color:var(--secondary);
+  box-shadow:0 0 0 2px rgba(47,117,181,.12);
+}
+
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:15px;
+}
+
+button{
+  border:0;
+  border-radius:6px;
+  padding:9px 14px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.btn-primary{
+  background:var(--primary);
+  color:white;
+}
+
+.btn-secondary{
+  background:var(--secondary);
+  color:white;
+}
+
+.btn-light{
+  background:#e2e8f0;
+  color:#1e293b;
+}
+
+.btn-danger{
+  background:var(--danger);
+  color:white;
+}
+
+.btn-success{
+  background:var(--success);
+  color:white;
+}
+
+button:hover{
+  opacity:.9;
+}
+
+.table-wrap{
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1100px;
+}
+
+th{
+  background:var(--primary);
+  color:white;
+  padding:10px;
+  border:1px solid white;
+  font-size:13px;
+}
+
+td{
+  border:1px solid var(--border);
+  padding:6px;
+  vertical-align:top;
+  background:white;
+}
+
+td input,
+td select{
+  min-width:90px;
+  border:1px solid #d7dee8;
+  padding:7px;
+}
+
+.session-actions{
+  display:flex;
+  gap:4px;
+  flex-wrap:wrap;
+}
+
+.session-actions button{
+  padding:5px 8px;
+  font-size:11px;
+}
+
+.preview{
+  background:white;
+  padding:25px;
+  border:1px solid var(--border);
+  margin-top:20px;
+}
+
+.preview-header{
+  text-align:center;
+  margin-bottom:18px;
+}
+
+.preview-header h2{
+  margin:4px 0;
+  color:var(--primary);
+}
+
+.preview-header h3{
+  margin:4px 0;
+}
+
+.preview-header p{
+  margin:4px;
+}
+
+.preview table{
+  min-width:0;
+}
+
+.preview td,
+.preview th{
+  padding:8px;
+}
+
+.status{
+  margin-top:10px;
+  color:var(--success);
+  font-weight:600;
+}
+
+@media(max-width:1000px){
+  .grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+@media(max-width:600px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .container{
+    padding:10px;
+  }
+}
+
+@media print{
+
+  body{
+    background:white;
+  }
+
+  .no-print{
+    display:none !important;
+  }
+
+  .container{
+    max-width:none;
+    padding:0;
+  }
+
+  .section{
+    border:0;
+    box-shadow:none;
+    padding:0;
+  }
+
+  .preview{
+    border:0;
+    padding:0;
+  }
+
+  .preview table{
+    page-break-inside:auto;
+  }
+
+  tr{
+    page-break-inside:avoid;
+  }
+
+  @page{
+    size:landscape;
+    margin:10mm;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- HEADER -->
+<div class="header no-print">
+  <h1>ZIET General Timetable Editor</h1>
+  <p>Create, edit and print timetables for any ZIET programme / workshop.</p>
+</div>
+
+
+<!-- PROGRAMME INFORMATION -->
+<div class="section no-print">
+
+  <div class="section-title">
+    Programme Information
+  </div>
+
+  <div class="grid">
+
+    <div class="field full">
+      <label>Programme / Workshop Title</label>
+      <input id="programmeTitle"
+             placeholder="Enter programme title">
+    </div>
+
+    <div class="field full">
+      <label>Theme / Subtitle</label>
+      <input id="programmeTheme"
+             placeholder="Enter theme or subtitle">
+    </div>
+
+    <div class="field">
+      <label>Organising Institution</label>
+      <input id="institution"
+             value="Kendriya Vidyalaya Sangathan">
+    </div>
+
+    <div class="field">
+      <label>Institute / ZIET</label>
+      <input id="ziet"
+             value="ZIET Mumbai">
+    </div>
+
+    <div class="field">
+      <label>Target Group</label>
+      <input id="targetGroup"
+             placeholder="e.g. PRTs / Music Teachers">
+    </div>
+
+    <div class="field">
+      <label>Batch</label>
+      <input id="batch"
+             placeholder="Batch I">
+    </div>
+
+    <div class="field">
+      <label>Programme Start Date</label>
+      <input id="startDate" type="date">
+    </div>
+
+    <div class="field">
+      <label>Programme End Date</label>
+      <input id="endDate" type="date">
+    </div>
+
+    <div class="field">
+      <label>Venue</label>
+      <input id="venue"
+             placeholder="Enter venue">
+    </div>
+
+    <div class="field">
+      <label>Coordinator</label>
+      <input id="coordinator"
+             placeholder="Enter coordinator name">
+    </div>
+
+    <div class="field">
+      <label>Contact</label>
+      <input id="contact"
+             placeholder="Enter contact details">
+    </div>
+
+    <div class="field full">
+      <label>Additional Programme Information</label>
+      <textarea id="programmeNotes"
+                placeholder="Any additional information"></textarea>
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- TIMETABLE -->
+<div class="section no-print">
+
+  <div class="section-title">
+    Timetable Editor
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" onclick="addSession()">
+      + Add Session
+    </button>
+
+    <button class="btn-secondary" onclick="addBreak()">
+      + Add Break
+    </button>
+
+    <button class="btn-light" onclick="saveData()">
+      Save
+    </button>
+
+    <button class="btn-light" onclick="loadData()">
+      Load Saved
+    </button>
+
+    <button class="btn-danger" onclick="clearAll()">
+      Clear All
+    </button>
+  </div>
+
+  <div class="table-wrap">
+
+    <table id="editorTable">
+
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Day</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Session / Activity</th>
+          <th>Type</th>
+          <th>Resource Person / Guest Speaker</th>
+          <th>Designation</th>
+          <th>Organisation</th>
+          <th>Venue</th>
+          <th>Remarks</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody id="sessionBody"></tbody>
+
+    </table>
+
+  </div>
+
+  <div id="status" class="status"></div>
+
+</div>
+
+
+<!-- PREVIEW -->
+<div class="section">
+
+  <div class="section-title no-print">
+    Timetable Preview
+  </div>
+
+  <div class="preview" id="preview">
+
+    <div class="preview-header">
+
+      <h3 id="previewInstitution">
+        Kendriya Vidyalaya Sangathan
+      </h3>
+
+      <h3 id="previewZiet">
+        ZIET Mumbai
+      </h3>
+
+      <h2 id="previewTitle">
+        Programme Title
+      </h2>
+
+      <h3 id="previewTheme">
+        Programme Theme
+      </h3>
+
+      <p id="previewDates"></p>
+
+      <p id="previewTarget"></p>
+
+      <p id="previewVenue"></p>
+
+    </div>
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Session / Activity</th>
+          <th>Resource Person / Guest Speaker</th>
+          <th>Designation</th>
+          <th>Organisation</th>
+          <th>Venue</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+
+      <tbody id="previewBody"></tbody>
+
+    </table>
+
+  </div>
+
+  <div class="actions no-print">
+
+    <button class="btn-success" onclick="updatePreview()">
+      Update Preview
+    </button>
+
+    <button class="btn-primary" onclick="window.print()">
+      Print / Save PDF
+    </button>
+
+  </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ============================================================
+   GENERAL ZIET TIMETABLE EDITOR
+   All timetable data is editable.
+   ============================================================ */
+
+let sessions = [];
+
+
+/* ------------------------------------------------------------
+   ADD SESSION
+------------------------------------------------------------ */
+
+function addSession(data = {}){
+
+  sessions.push({
+
+    date: data.date || "",
+    day: data.day || "",
+    start: data.start || "",
+    end: data.end || "",
+
+    title: data.title || "",
+
+    type: data.type || "Regular Session",
+
+    person: data.person || "",
+
+    designation: data.designation || "",
+
+    organisation: data.organisation || "",
+
+    venue: data.venue || "",
+
+    remarks: data.remarks || ""
+
+  });
+
+  renderEditor();
+  updatePreview();
+}
+
+
+/* ------------------------------------------------------------
+   ADD BREAK
+------------------------------------------------------------ */
+
+function addBreak(){
+
+  sessions.push({
+
+    date:"",
+    day:"",
+    start:"",
+    end:"",
+    title:"Break",
+    type:"Break",
+    person:"",
+    designation:"",
+    organisation:"",
+    venue:"",
+    remarks:""
+
+  });
+
+  renderEditor();
+  updatePreview();
+}
+
+
+/* ------------------------------------------------------------
+   DELETE
+------------------------------------------------------------ */
+
+function deleteSession(index){
+
+  if(confirm("Delete this timetable entry?")){
+
+    sessions.splice(index,1);
+
+    renderEditor();
+    updatePreview();
+
+  }
+
+}
+
+
+/* ------------------------------------------------------------
+   DUPLICATE
+------------------------------------------------------------ */
+
+function duplicateSession(index){
+
+  const copy =
+    JSON.parse(JSON.stringify(sessions[index]));
+
+  sessions.splice(index + 1,0,copy);
+
+  renderEditor();
+  updatePreview();
+
+}
+
+
+/* ------------------------------------------------------------
+   MOVE
+------------------------------------------------------------ */
+
+function moveUp(index){
+
+  if(index === 0) return;
+
+  [
+    sessions[index-1],
+    sessions[index]
+  ] =
+  [
+    sessions[index],
+    sessions[index-1]
+  ];
+
+  renderEditor();
+  updatePreview();
+
+}
+
+
+function moveDown(index){
+
+  if(index >= sessions.length-1) return;
+
+  [
+    sessions[index],
+    sessions[index+1]
+  ] =
+  [
+    sessions[index+1],
+    sessions[index]
+  ];
+
+  renderEditor();
+  updatePreview();
+
+}
+
+
+/* ------------------------------------------------------------
+   UPDATE FIELD
+------------------------------------------------------------ */
+
+function updateSession(index, field, value){
+
+  sessions[index][field] = value;
+
+  if(field === "date"){
+
+    sessions[index].day =
+      getDayName(value);
+
+  }
+
+  updatePreview();
+
+}
+
+
+/* ------------------------------------------------------------
+   DAY
+------------------------------------------------------------ */
+
+function getDayName(date){
+
+  if(!date) return "";
+
+  const d = new Date(date + "T00:00:00");
+
+  return d.toLocaleDateString(
+    "en-IN",
+    {weekday:"long"}
+  );
+
+}
+
+
+/* ------------------------------------------------------------
+   EDITOR RENDER
+------------------------------------------------------------ */
+
+function renderEditor(){
+
+  const body =
+    document.getElementById("sessionBody");
+
+  body.innerHTML = "";
+
+  sessions.forEach((s,index)=>{
+
+    const tr =
+      document.createElement("tr");
+
+    tr.innerHTML = `
+
+      <td>
+        <input type="date"
+          value="${escapeAttr(s.date)}"
+          onchange="updateSession(${index},'date',this.value)">
+      </td>
+
+      <td>
+        <input
+          value="${escapeAttr(s.day)}"
+          onchange="updateSession(${index},'day',this.value)">
+      </td>
+
+      <td>
+        <input type="time"
+          value="${escapeAttr(s.start)}"
+          onchange="updateSession(${index},'start',this.value)">
+      </td>
+
+      <td>
+        <input type="time"
+          value="${escapeAttr(s.end)}"
+          onchange="updateSession(${index},'end',this.value)">
+      </td>
+
+      <td>
+        <input
+          value="${escapeAttr(s.title)}"
+          placeholder="Session title"
+          onchange="updateSession(${index},'title',this.value)">
+      </td>
+
+      <td>
+        <select
+          onchange="updateSession(${index},'type',this.value)">
+
+          ${option("Regular Session",s.type)}
+          ${option("Guest Speaker",s.type)}
+          ${option("Resource Person",s.type)}
+          ${option("Activity",s.type)}
+          ${option("Break",s.type)}
+          ${option("Inauguration",s.type)}
+          ${option("Valedictory",s.type)}
+          ${option("Other",s.type)}
+
+        </select>
+      </td>
+
+      <td>
+        <input
+          value="${escapeAttr(s.person)}"
+          placeholder="Name"
+          onchange="updateSession(${index},'person',this.value)">
+      </td>
+
+      <td>
+        <input
+          value="${escapeAttr(s.designation)}"
+          placeholder="Designation"
+          onchange="updateSession(${index},'designation',this.value)">
+      </td>
+
+      <td>
+        <input
+          value="${escapeAttr(s.organisation)}"
+          placeholder="Organisation"
+          onchange="updateSession(${index},'organisation',this.value)">
+      </td>
+
+      <td>
+        <input
+          value="${escapeAttr(s.venue)}"
+          placeholder="Venue"
+          onchange="updateSession(${index},'venue',this.value)">
+      </td>
+
+      <td>
+        <input
+          value="${escapeAttr(s.remarks)}"
+          placeholder="Remarks"
+          onchange="updateSession(${index},'remarks',this.value)">
+      </td>
+
+      <td>
+
+        <div class="session-actions">
+
+          <button class="btn-light"
+            onclick="moveUp(${index})">
+            ↑
+          </button>
+
+          <button class="btn-light"
+            onclick="moveDown(${index})">
+            ↓
+          </button>
+
+          <button class="btn-secondary"
+            onclick="duplicateSession(${index})">
+            ⧉
+          </button>
+
+          <button class="btn-danger"
+            onclick="deleteSession(${index})">
+            ×
+          </button>
+
+        </div>
+
+      </td>
+    `;
+
+    body.appendChild(tr);
+
+  });
+
+}
+
+
+/* ------------------------------------------------------------
+   PREVIEW
+------------------------------------------------------------ */
+
+function updatePreview(){
+
+  document.getElementById("previewInstitution")
+    .textContent =
+      value("institution") ||
+      "Kendriya Vidyalaya Sangathan";
+
+  document.getElementById("previewZiet")
+    .textContent =
+      value("ziet") ||
+      "ZIET Mumbai";
+
+  document.getElementById("previewTitle")
+    .textContent =
+      value("programmeTitle") ||
+      "Programme Title";
+
+  document.getElementById("previewTheme")
+    .textContent =
+      value("programmeTheme");
+
+  document.getElementById("previewTarget")
+    .textContent =
+      value("targetGroup")
+        ? "Target Group: " + value("targetGroup")
+        : "";
+
+  document.getElementById("previewVenue")
+    .textContent =
+      value("venue")
+        ? "Venue: " + value("venue")
+        : "";
+
+  const start =
+    value("startDate");
+
+  const end =
+    value("endDate");
+
+  let dateText = "";
+
+  if(start && end){
+
+    dateText =
+      formatDate(start) +
+      " – " +
+      formatDate(end);
+
+  }else if(start){
+
+    dateText =
+      formatDate(start);
+
+  }
+
+  document.getElementById("previewDates")
+    .textContent = dateText;
+
+
+  const body =
+    document.getElementById("previewBody");
+
+  body.innerHTML = "";
+
+  sessions.forEach(s=>{
+
+    const tr =
+      document.createElement("tr");
+
+    const time =
+      s.start || s.end
+        ? `${s.start || ""} – ${s.end || ""}`
+        : "";
+
+    tr.innerHTML = `
+
+      <td>${escapeHTML(formatDate(s.date))}</td>
+
+      <td>${escapeHTML(s.day)}</td>
+
+      <td>${escapeHTML(time)}</td>
+
+      <td>
+        <strong>
+          ${escapeHTML(s.title)}
+        </strong>
+        ${
+          s.type
+            ? `<br><small>${escapeHTML(s.type)}</small>`
+            : ""
+        }
+      </td>
+
+      <td>
+        ${escapeHTML(s.person)}
+      </td>
+
+      <td>
+        ${escapeHTML(s.designation)}
+      </td>
+
+      <td>
+        ${escapeHTML(s.organisation)}
+      </td>
+
+      <td>
+        ${escapeHTML(s.venue)}
+      </td>
+
+      <td>
+        ${escapeHTML(s.remarks)}
+      </td>
+
+    `;
+
+    body.appendChild(tr);
+
+  });
+
+}
+
+
+/* ------------------------------------------------------------
+   PROGRAMME FIELD LISTENERS
+------------------------------------------------------------ */
+
+const programmeFields = [
+
+  "programmeTitle",
+  "programmeTheme",
+  "institution",
+  "ziet",
+  "targetGroup",
+  "batch",
+  "startDate",
+  "endDate",
+  "venue",
+  "coordinator",
+  "contact",
+  "programmeNotes"
+
+];
+
+programmeFields.forEach(id=>{
+
+  document.getElementById(id)
+    .addEventListener("input",updatePreview);
+
+});
+
+
+/* ------------------------------------------------------------
+   SAVE
+------------------------------------------------------------ */
+
+function saveData(){
+
+  const data = {
+
+    programme: {},
+
+    sessions: sessions
+
+  };
+
+
+  programmeFields.forEach(id=>{
+
+    data.programme[id] =
+      document.getElementById(id).value;
+
+  });
+
+
+  localStorage.setItem(
+
+    "ZIET_GENERAL_TIMETABLE",
+
+    JSON.stringify(data)
+
+  );
+
+
+  showStatus(
+    "Timetable saved successfully."
+  );
+
+}
+
+
+/* ------------------------------------------------------------
+   LOAD
+------------------------------------------------------------ */
+
+function loadData(){
+
+  const raw =
+    localStorage.getItem(
+      "ZIET_GENERAL_TIMETABLE"
+    );
+
+  if(!raw){
+
+    showStatus(
+      "No saved timetable found."
+    );
+
+    return;
+
+  }
+
+  try{
+
+    const data =
+      JSON.parse(raw);
+
+
+    programmeFields.forEach(id=>{
+
+      if(data.programme &&
+         data.programme[id] !== undefined){
+
+        document.getElementById(id).value =
+          data.programme[id];
+
+      }
+
+    });
+
+
+    sessions =
+      Array.isArray(data.sessions)
+        ? data.sessions
+        : [];
+
+
+    renderEditor();
+    updatePreview();
+
+
+    showStatus(
+      "Saved timetable loaded."
+    );
+
+  }catch(error){
+
+    alert(
+      "Unable to load saved timetable."
+    );
+
+  }
+
+}
+
+
+/* ------------------------------------------------------------
+   CLEAR
+------------------------------------------------------------ */
+
+function clearAll(){
+
+  if(!confirm(
+    "Clear the entire timetable?"
+  )) return;
+
+  sessions = [];
+
+  programmeFields.forEach(id=>{
+
+    document.getElementById(id).value = "";
+
+  });
+
+  document.getElementById("institution").value =
+    "Kendriya Vidyalaya Sangathan";
+
+  document.getElementById("ziet").value =
+    "ZIET Mumbai";
+
+  renderEditor();
+  updatePreview();
+
+}
+
+
+/* ------------------------------------------------------------
+   HELPERS
+------------------------------------------------------------ */
+
+function value(id){
+
+  return document.getElementById(id).value.trim();
+
+}
+
+
+function formatDate(date){
+
+  if(!date) return "";
+
+  const d =
+    new Date(date + "T00:00:00");
+
+  return d.toLocaleDateString(
+    "en-IN",
+    {
+      day:"2-digit",
+      month:"short",
+      year:"numeric"
+    }
+  );
+
+}
+
+
+function option(text,selected){
+
+  return `
+    <option
+      value="${escapeAttr(text)}"
+      ${text === selected ? "selected" : ""}>
+      ${escapeHTML(text)}
+    </option>
+  `;
+
+}
+
+
+function escapeHTML(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+function escapeAttr(value){
+
+  return escapeHTML(value);
+
+}
+
+
+function showStatus(message){
+
+  const status =
+    document.getElementById("status");
+
+  status.textContent = message;
+
+  setTimeout(()=>{
+
+    status.textContent = "";
+
+  },3000);
+
+}
+
+
+/* ------------------------------------------------------------
+   INITIAL SAMPLE — EMPTY BY DESIGN
+------------------------------------------------------------ */
+
+renderEditor();
+updatePreview();
+
+</script>
+
+</body>
+</html>
